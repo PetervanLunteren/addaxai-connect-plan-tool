@@ -101,3 +101,28 @@
   gap: .75rem;
 }
 
+/* Mobile */
+@media (max-width: 600px) {
+  .map-wrap {
+    height: 400px;
+  }
+
+  .metrics-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    min-width: auto;
+  }
+
+  .map-empty-state {
+    left: 8px;
+    right: 8px;
+    max-width: none;
+  }
+
+  .placement-toolbar {
+    padding: .75rem 1rem;
+    gap: .75rem;
+  }
+}
+

@@ -202,3 +202,63 @@ details[open] > .collapsible-toggle::before {
   background: var(--teal-50);
   color: var(--teal-800);
 }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .output-table th:nth-child(2),
+  .output-table th:nth-child(3),
+  .output-table td:nth-child(2),
+  .output-table td:nth-child(3) {
+    display: none;
+  }
+
+  .output-table th,
+  .output-table td {
+    padding: .35rem .5rem;
+    font-size: .75rem;
+  }
+
+  .scaling-scroll-wrap {
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .scaling-scroll-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to right, transparent, white);
+    pointer-events: none;
+  }
+
+  .scaling-table {
+    min-width: 500px;
+  }
+
+  .chart-container {
+    flex-direction: column;
+    padding: .75rem;
+    gap: 1rem;
+  }
+
+  .chart-svg {
+    width: 180px;
+    height: 180px;
+  }
+
+  .legend {
+    width: 100%;
+  }
+
+  .collapsible-toggle {
+    padding: .6rem 1rem;
+    font-size: .8rem;
+  }
+
+  .collapsible-body {
+    padding: 0 .75rem .75rem;
+  }
+}
