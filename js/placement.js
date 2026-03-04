@@ -16,9 +16,27 @@
     map = L.map('map').setView([20, 0], 2);
     window.placementMap = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
+    });
+
+    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri',
+      maxZoom: 19
+    });
+
+    var light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; CartoDB',
+      maxZoom: 19
+    });
+
+    osm.addTo(map);
+
+    L.control.layers({
+      'OpenStreetMap': osm,
+      'Satellite': satellite,
+      'Light': light
     }).addTo(map);
 
     drawnItems = new L.FeatureGroup();
