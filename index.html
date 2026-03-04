@@ -45,7 +45,7 @@
             <select id="years"><option value="1">1 year</option><option value="2">2 years</option></select>
           </div>
           <div class="input-row checkbox-row">
-            <label class="checkbox-label"><input type="checkbox" id="byo"> I'll bring my own cameras<span class="caption">Skips camera hardware costs, but usually requires a few days of software development to integrate with the platform</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="byo"> I'll bring my own cameras<span class="caption">Skips camera hardware costs, but usually requires a few days of software development to integrate with the platform. See <a href="#" id="openCameraSpecs">camera requirements</a></span></label>
           </div>
           <div class="input-row camera-row">
             <label>Active cameras<span class="caption">Cameras with an active connection to the system (includes SIM, SD-cards, batteries, configuration). See <a href="https://wiki.smartparks.org/addaxaiconnect/cameras/willfinet40cg" target="_blank">camera details</a></span></label>
@@ -120,6 +120,36 @@
           </table>
           <p style="font-size:.7rem; color:#9ca3af; padding:.5rem .5rem 0; font-style:italic;">* Based on Dutch SIM cards, costs may vary by country.</p>
           <p style="font-size:.7rem; color:#9ca3af; padding:.25rem .5rem .25rem; font-style:italic;">** Wildlife Insight charges around 300 per camera per year. Only applies when enabled in project parameters.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera specs modal -->
+    <div class="modal-overlay" id="cameraSpecsModal">
+      <div class="modal">
+        <div class="modal-header">
+          Camera requirements
+          <button class="modal-close" id="closeCameraSpecs">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1rem 1.25rem;">
+          <p>If you want to use your own cameras, make sure they meet the following requirements:</p>
+          <h4>Required</h4>
+          <ul>
+            <li><strong>Configurable FTPS settings</strong> — the camera must be able to send images via FTPS to a custom IP address or URL domain</li>
+            <li><strong>High-resolution images</strong> — lower resolution results in less predictable AI performance</li>
+            <li><strong>GPS location</strong> in each image</li>
+            <li><strong>Camera identifier</strong> — some link to the camera ID (usually IMEI or another unique identifier) so the system knows which camera the image came from</li>
+            <li><strong>Date & time</strong> in each image</li>
+          </ul>
+          <p>How this metadata is embedded (filename, EXIF, etc.) does not matter — a custom camera profile will need to be created to integrate any new camera type with the system.</p>
+          <h4>Nice to have</h4>
+          <ul>
+            <li><strong>Daily status reports</strong> with signal strength, battery percentage, SD card usage, camera location, and number of images on SD. These will be shown on the camera page. If the camera does not send this information, those fields simply won't be populated, but the system will work regardless.</li>
+          </ul>
+          <h4>Already integrated</h4>
+          <ul>
+            <li><a href="https://wiki.smartparks.org/addaxaiconnect/cameras/willfinet40cg" target="_blank">Willfine T4.0-CG</a></li>
+          </ul>
         </div>
       </div>
     </div>
