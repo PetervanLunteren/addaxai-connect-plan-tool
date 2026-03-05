@@ -1,0 +1,2 @@
+# TODO
+- [ ] add input for local support sessions (this is made for people we collaborate with abroad, they do help locally with setting up the cameras, in their own language, and helping answer questions, explaining everything. etc. We work wtogether with Studio Alpino in Switserland / North Italy. )
