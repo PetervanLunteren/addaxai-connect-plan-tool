@@ -299,7 +299,7 @@ header a { color: var(--teal-700); }
 }
 
 .checkbox-label input[type="checkbox"] {
-  margin: .2rem 0 0 0;
+  margin: .2rem .2rem 0 0;
   accent-color: var(--teal-700);
 }
 
