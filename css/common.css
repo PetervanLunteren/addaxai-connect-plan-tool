@@ -290,7 +290,7 @@ header a { color: var(--teal-700); }
 .checkbox-label {
   display: flex;
   align-items: flex-start;
-  gap: .5rem;
+  gap: .35rem;
   cursor: pointer;
 }
 
