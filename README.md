@@ -1,7 +1,7 @@
-# AddaxAI-Connect Cost Calculator
+# AddaxAI Connect plan tool
 
-Interactive cost calculator for [AddaxAI-Connect](https://github.com/PetervanLunteren/AddaxAI-Connect) wildlife monitoring projects.
+Planning tool for [AddaxAI Connect](https://github.com/PetervanLunteren/AddaxAI-Connect) wildlife monitoring projects. It has two parts, a cost calculator and a camera placement tool.
 
-Adjust project parameters (number of cameras, years, training sessions, etc.) and unit prices to get a real-time cost estimate.
+AddaxAI Connect is made for nature conservation. The software is free and open source, with no licensing cost. The calculator only estimates hardware and optional help, so you can plan a project budget. The placement tool helps you lay out cameras across a study area.
 
-**[Open the calculator](https://petervanlunteren.github.io/addaxai-connect-cost-model/)**
+**[Open the plan tool](https://plan.addaxai.com)**
