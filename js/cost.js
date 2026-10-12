@@ -7,21 +7,56 @@ var COLORS = [
   '#48c5cd','#78d4da'
 ];
 
+/* Every unit price: id for the input, name as shown in the cost breakdown, default, basis, group and description.
+   The modal is rendered from this list and the table rows take their names from it, so the two stay identical. */
+var PRICE_ITEMS = [
+  { key: 'camera',        id: 'priceCamera',        name: 'Cameras',                       def: 130,  step: 1,   basis: 'per camera',               cat: 'Hardware', desc: 'Active and backup cameras' },
+  { key: 'enclosure',     id: 'priceEnclosure',     name: 'Enclosures',                    def: 30,   step: 1,   basis: 'per enclosure',            cat: 'Hardware', desc: 'Protective housing for a camera' },
+  { key: 'enclosureLock', id: 'priceEnclosureLock', name: 'Enclosure locks',               def: 30,   step: 1,   basis: 'per lock',                 cat: 'Hardware', desc: 'Lock for an enclosure' },
+  { key: 'charger',       id: 'priceCharger',       name: 'Battery charger',               def: 50,   step: 1,   basis: 'per project',              cat: 'Hardware', desc: 'One charger per project' },
+  { key: 'sd',            id: 'priceSD',            name: 'SD-cards (two units)',          def: 40,   step: 1,   basis: 'per active camera',        cat: 'Hardware', desc: 'Two cards, so one can be swapped in the field' },
+  { key: 'batteries',     id: 'priceBatteries',     name: 'Batteries (two units)',         def: 100,  step: 1,   basis: 'per active camera',        cat: 'Hardware', desc: 'Two sets, one in use and one charging' },
+  { key: 'logistics',     id: 'priceLogistics',     name: 'Logistics',                     def: 10,   step: 1,   basis: 'per camera',               cat: 'Hardware', desc: 'Shipping and handling, active and backup cameras' },
+  { key: 'config',        id: 'priceConfig',        name: 'Camera configuration',          def: 25,   step: 1,   basis: 'per active camera',        cat: 'Setup',    desc: 'Setting up and testing each camera before shipping' },
+  { key: 'srvSetup',      id: 'priceSrvSetup',      name: 'Server setup',                  def: 1000, step: 50,  basis: 'per project',              cat: 'Setup',    desc: 'Installing the server and the platform' },
+  { key: 'swSetup',       id: 'priceSWSetup',       name: 'Software setup',                def: 1000, step: 50,  basis: 'per project',              cat: 'Setup',    desc: 'Configuring the platform for your project' },
+  { key: 'projMgmt',      id: 'priceProjMgmt',      name: 'Project management',            def: 1000, step: 50,  basis: 'per project',              cat: 'Setup',    desc: 'Coordination during the project' },
+  { key: 'swDev',         id: 'priceSWDev',         name: 'Software development',          def: 1000, step: 50,  basis: 'per day',                  cat: 'Setup',    desc: 'Custom features or integrations' },
+  { key: 'training',      id: 'priceTraining',      name: 'Training',                      def: 1000, step: 50,  basis: 'per session',              cat: 'Setup',    desc: 'Onboarding session for your team' },
+  { key: 'localSupport',  id: 'priceLocalSupport',  name: 'Local support',                 def: 1000, step: 50,  basis: 'per session',              cat: 'Setup',    desc: 'On-site session by a local partner' },
+  { key: 'sim',           id: 'priceSIM',           name: 'Mobile data (SIM-card)',        def: 5,    step: 0.5, basis: 'per active camera / month', cat: 'Usage',   desc: 'Costs may vary by region' },
+  { key: 'mgmt',          id: 'camMgmtCost',        name: 'Camera placement & management', def: 300,  step: 10,  basis: 'per active camera / year', cat: 'Usage',    desc: 'By Wildlife Insight, in the Netherlands only. Elsewhere this needs to be arranged separately' },
+  { key: 'srvInstance',   id: 'priceSrvInstance',   name: 'Server instance',               def: 100,  step: 10,  basis: 'per project / month',      cat: 'Usage',    desc: 'Hosting of the platform' },
+  { key: 'srvMaint',      id: 'priceSrvMaint',      name: 'Server maintenance',            def: 250,  step: 10,  basis: 'per project / month',      cat: 'Usage',    desc: 'Updates and monitoring of the server' },
+  { key: 'swMaint',       id: 'priceSWMaint',       name: 'Software maintenance',          def: 250,  step: 10,  basis: 'per project / month',      cat: 'Usage',    desc: 'Updates and support for the platform' },
+  { key: 'imgStorage',    id: 'priceImgStorage',    name: 'Image storage',                 def: 10,   step: 1,   basis: 'per project / month',      cat: 'Usage',    desc: 'Cold storage of all images' },
+  { key: 'srvBackup',     id: 'priceSrvBackup',     name: 'Server backup',                 def: 10,   step: 1,   basis: 'per project / month',      cat: 'Usage',    desc: 'Backups of the server' }
+];
+var PRICE_IDS = PRICE_ITEMS.map(function (it) { return it.id; });
+var PRICE_BY_KEY = {};
+PRICE_ITEMS.forEach(function (it) { PRICE_BY_KEY[it.key] = it; });
+
+function renderPricesModal() {
+  var html = '';
+  var lastCat = '';
+  PRICE_ITEMS.forEach(function (it) {
+    if (it.cat !== lastCat) {
+      lastCat = it.cat;
+      html += '<tr class="section-row"><td colspan="3">' + it.cat + '</td></tr>';
+    }
+    html += '<tr>' +
+      '<td>' + it.name + '<span class="caption">' + it.desc + '</span></td>' +
+      '<td><input type="number" class="modal-input" id="' + it.id + '" value="' + it.def + '" min="0" step="' + it.step + '"></td>' +
+      '<td class="desc">' + it.basis + '</td>' +
+      '</tr>';
+  });
+  $('pricesBody').innerHTML = html;
+}
+
 function prices() {
-  return {
-    camera: val('priceCamera'), enclosure: val('priceEnclosure'),
-    enclosureLock: val('priceEnclosureLock'),
-    config: val('priceConfig'), logistics: val('priceLogistics'),
-    sd: val('priceSD'), batteries: val('priceBatteries'),
-    sim: val('priceSIM'), charger: val('priceCharger'),
-    swSetup: val('priceSWSetup'), swMaint: val('priceSWMaint'),
-    swDev: val('priceSWDev'), srvSetup: val('priceSrvSetup'),
-    srvMaint: val('priceSrvMaint'), srvInstance: val('priceSrvInstance'),
-    imgStorage: val('priceImgStorage'), srvBackup: val('priceSrvBackup'),
-    projMgmt: val('priceProjMgmt'),
-    training: val('priceTraining'),
-    localSupport: val('priceLocalSupport')
-  };
+  var P = {};
+  PRICE_ITEMS.forEach(function (it) { P[it.key] = val(it.id); });
+  return P;
 }
 
 function inputs() {
@@ -32,7 +67,7 @@ function inputs() {
     projMgmt: val('projMgmt'), sessions: val('trainingSessions'),
     localSupport: val('localSupportSessions'), devDays: val('devDays'),
     byo: $('byo').checked, byoSim: $('byoSim').checked, diy: $('diy').checked,
-    inclMgmt: !$('camMgmt').checked, mgmtCost: val('camMgmtCost')
+    inclMgmt: !$('camMgmt').checked
   };
 }
 
@@ -42,29 +77,30 @@ function buildRows(P, I) {
   var perYr = ' / ' + I.years + 'yr';
   var hw  = function (n) { return I.byo ? 0 : n; };   // hardware, skipped with own cameras
   var svc = function (n) { return I.diy ? 0 : n; };   // service, skipped when doing it yourself
+  var N = function (key) { return PRICE_BY_KEY[key].name; };
   var rows = [
-    { name: 'Active cameras',                unit: P.camera,                 basis: 'Per item',             qty: hw(I.active),                 cat: 'Hardware' },
-    { name: 'Backup cameras',                unit: P.camera,                 basis: 'Per item',             qty: hw(I.backup),                 cat: 'Hardware' },
-    { name: 'Enclosures',                    unit: P.enclosure,              basis: 'Per item',             qty: hw(I.encl),                   cat: 'Hardware' },
-    { name: 'Enclosure locks',               unit: P.enclosureLock,          basis: 'Per item',             qty: hw(I.locks),                  cat: 'Hardware' },
-    { name: 'Battery charger',               unit: P.charger,                basis: 'Per project',          qty: hw(1),                        cat: 'Hardware' },
-    { name: 'SD-cards (two units)',          unit: P.sd,                     basis: 'Per active camera',    qty: hw(I.active),                 cat: 'Hardware' },
-    { name: 'Batteries (two units)',         unit: P.batteries,              basis: 'Per active camera',    qty: hw(I.active),                 cat: 'Hardware' },
-    { name: 'Logistics',                     unit: P.logistics,              basis: 'Per item',             qty: hw(I.active + I.backup),      cat: 'Hardware' },
-    { name: 'Camera configuration',          unit: P.config,                 basis: 'Per active camera',    qty: svc(hw(I.active)),            cat: 'Setup' },
-    { name: 'Server setup',                  unit: P.srvSetup,               basis: 'Per project',          qty: svc(1),                       cat: 'Setup' },
-    { name: 'Software setup',                unit: P.swSetup,                basis: 'Per project',          qty: svc(1),                       cat: 'Setup' },
-    { name: 'Project management',            unit: P.projMgmt,               basis: 'Per project',          qty: svc(I.projMgmt),              cat: 'Setup' },
-    { name: 'Software development',          unit: P.swDev,                  basis: 'Per day',              qty: svc(I.devDays),               cat: 'Setup' },
-    { name: 'Training',                      unit: P.training,               basis: 'Per session',          qty: svc(I.sessions),              cat: 'Setup' },
-    { name: 'Local support',                 unit: P.localSupport,           basis: 'Per session',          qty: svc(I.localSupport),          cat: 'Setup' },
-    { name: 'Mobile data (SIM-card)',        unit: P.sim * months,           basis: 'Per camera' + perYr,   qty: I.byoSim ? 0 : I.active,      cat: 'Usage' },
-    { name: 'Camera placement & management', unit: (I.inclMgmt ? I.mgmtCost : 0) * I.years, basis: 'Per camera' + perYr, qty: I.active,  cat: 'Usage' },
-    { name: 'Server instance',               unit: P.srvInstance * months,   basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
-    { name: 'Server maintenance',            unit: P.srvMaint * months,      basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
-    { name: 'Software maintenance',          unit: P.swMaint * months,       basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
-    { name: 'Image storage',                 unit: P.imgStorage * months,    basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
-    { name: 'Server backup',                 unit: P.srvBackup * months,     basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' }
+    { name: 'Active cameras',   unit: P.camera,                            basis: 'Per item',            qty: hw(I.active),            cat: 'Hardware' },
+    { name: 'Backup cameras',   unit: P.camera,                            basis: 'Per item',            qty: hw(I.backup),            cat: 'Hardware' },
+    { name: N('enclosure'),     unit: P.enclosure,                         basis: 'Per item',            qty: hw(I.encl),              cat: 'Hardware' },
+    { name: N('enclosureLock'), unit: P.enclosureLock,                     basis: 'Per item',            qty: hw(I.locks),             cat: 'Hardware' },
+    { name: N('charger'),       unit: P.charger,                           basis: 'Per project',         qty: hw(1),                   cat: 'Hardware' },
+    { name: N('sd'),            unit: P.sd,                                basis: 'Per active camera',   qty: hw(I.active),            cat: 'Hardware' },
+    { name: N('batteries'),     unit: P.batteries,                         basis: 'Per active camera',   qty: hw(I.active),            cat: 'Hardware' },
+    { name: N('logistics'),     unit: P.logistics,                         basis: 'Per item',            qty: hw(I.active + I.backup), cat: 'Hardware' },
+    { name: N('config'),        unit: P.config,                            basis: 'Per active camera',   qty: svc(hw(I.active)),       cat: 'Setup' },
+    { name: N('srvSetup'),      unit: P.srvSetup,                          basis: 'Per project',         qty: svc(1),                  cat: 'Setup' },
+    { name: N('swSetup'),       unit: P.swSetup,                           basis: 'Per project',         qty: svc(1),                  cat: 'Setup' },
+    { name: N('projMgmt'),      unit: P.projMgmt,                          basis: 'Per project',         qty: svc(I.projMgmt),         cat: 'Setup' },
+    { name: N('swDev'),         unit: P.swDev,                             basis: 'Per day',             qty: svc(I.devDays),          cat: 'Setup' },
+    { name: N('training'),      unit: P.training,                          basis: 'Per session',         qty: svc(I.sessions),         cat: 'Setup' },
+    { name: N('localSupport'),  unit: P.localSupport,                      basis: 'Per session',         qty: svc(I.localSupport),     cat: 'Setup' },
+    { name: N('sim'),           unit: P.sim * months,                      basis: 'Per camera' + perYr,  qty: I.byoSim ? 0 : I.active, cat: 'Usage' },
+    { name: N('mgmt'),          unit: (I.inclMgmt ? P.mgmt : 0) * I.years, basis: 'Per camera' + perYr,  qty: I.active,                cat: 'Usage' },
+    { name: N('srvInstance'),   unit: P.srvInstance * months,              basis: 'Per project' + perYr, qty: svc(1),                  cat: 'Usage' },
+    { name: N('srvMaint'),      unit: P.srvMaint * months,                 basis: 'Per project' + perYr, qty: svc(1),                  cat: 'Usage' },
+    { name: N('swMaint'),       unit: P.swMaint * months,                  basis: 'Per project' + perYr, qty: svc(1),                  cat: 'Usage' },
+    { name: N('imgStorage'),    unit: P.imgStorage * months,               basis: 'Per project' + perYr, qty: svc(1),                  cat: 'Usage' },
+    { name: N('srvBackup'),     unit: P.srvBackup * months,                basis: 'Per project' + perYr, qty: svc(1),                  cat: 'Usage' }
   ];
   rows.forEach(function (r) { r.total = r.unit * r.qty; });
   return rows;
@@ -74,37 +110,31 @@ function sumRows(rows) {
   return rows.reduce(function (s, r) { return s + r.total; }, 0);
 }
 
-/* Unit prices that differ from the HTML default, so a loaded project is easy to inspect */
+/* Unit prices that differ from the default, so a loaded project is easy to inspect */
 function priceChanges() {
-  return PRICE_IDS.map(function (id) {
-    var input = $(id);
-    return {
-      id: id,
-      name: input.closest('tr').children[0].textContent.replace(/\*+$/, ''),
-      def: parseFloat(input.defaultValue) || 0,
-      cur: val(id)
-    };
+  return PRICE_ITEMS.map(function (it) {
+    return { id: it.id, name: it.name, def: it.def, cur: val(it.id) };
   }).filter(function (c) { return c.cur !== c.def; });
 }
 
 function renderPriceChanges() {
   var changes = priceChanges();
-  var changedIds = changes.map(function (c) { return c.id; });
+  var byId = {};
+  changes.forEach(function (c) { byId[c.id] = c; });
 
   // Highlight changed rows in the modal and show the default
   PRICE_IDS.forEach(function (id) {
-    var input = $(id);
-    var tr = input.closest('tr');
-    var changed = changedIds.indexOf(id) !== -1;
-    tr.classList.toggle('changed', changed);
+    var tr = $(id).closest('tr');
+    var change = byId[id];
+    tr.classList.toggle('changed', !!change);
     var note = tr.querySelector('.default-note');
-    if (changed && !note) {
+    if (change && !note) {
       note = document.createElement('span');
       note.className = 'default-note';
       tr.children[2].appendChild(note);
     }
     if (note) {
-      if (changed) note.textContent = 'default \u20AC ' + eur(parseFloat(input.defaultValue) || 0);
+      if (change) note.textContent = 'default \u20AC ' + eur(change.def);
       else note.remove();
     }
   });
@@ -318,6 +348,8 @@ function calculate() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  renderPricesModal();
+
   // Attach listeners to all inputs
   document.querySelectorAll('#tab-cost input[type="number"], .modal-overlay input[type="number"]').forEach(function (input) {
     input.addEventListener('input', calculate);

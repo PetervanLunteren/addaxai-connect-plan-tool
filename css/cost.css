@@ -24,6 +24,22 @@
 
 .cost-table tr:last-child td { border-bottom: none; }
 
+.cost-table .section-row td {
+  font-weight: 700;
+  color: var(--gray-800);
+  padding: .6rem .5rem .3rem;
+  border-bottom: 2px solid var(--teal-300);
+  border-left: 3px solid var(--teal-700);
+}
+
+.cost-table .caption {
+  display: block;
+  font-size: .68rem;
+  color: var(--gray-400);
+  font-weight: 400;
+  font-style: italic;
+}
+
 /* Output table */
 .output-table {
   width: 100%;
