@@ -48,13 +48,13 @@ function initCameraSync() {
 }
 
 /* Save / Load project state */
-var COST_IDS = ['years', 'activeCameras', 'backupCameras', 'enclosures', 'trainingSessions', 'localSupportSessions', 'devDays'];
+var COST_IDS = ['years', 'activeCameras', 'backupCameras', 'enclosures', 'enclosureLocks', 'projMgmt', 'trainingSessions', 'localSupportSessions', 'devDays'];
 var COST_CHECKBOXES = ['byo', 'byoSim', 'camMgmt', 'diy'];
 var PRICE_IDS = [
-  'priceCamera', 'priceEnclosure', 'priceConfig', 'priceLogistics', 'priceSD',
-  'priceBatteries', 'priceSIM', 'camMgmtCost', 'priceCharger', 'priceSWSetup',
+  'priceCamera', 'priceEnclosure', 'priceEnclosureLock', 'priceConfig', 'priceLogistics', 'priceSD',
+  'priceBatteries', 'priceSIM', 'camMgmtCost', 'priceCharger', 'priceSWSetup', 'priceProjMgmt',
   'priceSWMaint', 'priceSWDev', 'priceSrvSetup', 'priceSrvMaint', 'priceSrvInstance',
-  'priceTraining', 'priceLocalSupport'
+  'priceImgStorage', 'priceSrvBackup', 'priceTraining', 'priceLocalSupport'
 ];
 
 function collectState() {

@@ -44,7 +44,7 @@
         <div class="card-header green">Project parameters</div>
         <div class="card-body">
           <div class="input-row">
-            <label>Number of years<span class="caption">Project duration, affects mobile data, software maintenance, server maintenance, and server instance costs</span></label>
+            <label>Number of years<span class="caption">Project duration, affects mobile data, software maintenance, server maintenance, server instance, image storage and server backup costs</span></label>
             <select id="years"><option value="1">1 year</option><option value="2">2 years</option></select>
           </div>
           <div class="input-row checkbox-row">
@@ -65,11 +65,19 @@
             <label>Enclosures<span class="caption">Optional protective camera housings</span></label>
             <input type="number" id="enclosures" value="0" min="0" step="1">
           </div>
+          <div class="input-row camera-row">
+            <label>Enclosure locks<span class="caption">Optional locks for the enclosures</span></label>
+            <input type="number" id="enclosureLocks" value="0" min="0" step="1">
+          </div>
           <div class="input-row checkbox-row">
             <label class="checkbox-label"><input type="checkbox" id="camMgmt"><span>I'll arrange camera placement and management myself<span class="caption">When unchecked, this is handled by a partner like Wildlife Insight in the Netherlands. In other countries this needs to be arranged separately</span></span></label>
           </div>
           <div class="input-row checkbox-row">
             <label class="checkbox-label"><input type="checkbox" id="diy"><span>I'll set up and maintain the server myself<span class="caption">Removes all professional service and hosting costs. You set up the software, server, and cameras yourself using the open-source documentation</span></span></label>
+          </div>
+          <div class="input-row service-row">
+            <label>Project management<span class="caption">Coordination during the project. One per project by default, increase for larger projects</span></label>
+            <input type="number" id="projMgmt" value="1" min="0" step="1">
           </div>
           <div class="input-row service-row">
             <label>Training sessions<span class="caption">Onboarding sessions to walk through the platform, settings, and workflows</span></label>
@@ -84,6 +92,7 @@
             <input type="number" id="devDays" value="0" min="0" step="1">
           </div>
           <span class="prices-link" id="openModal">Configure unit prices</span>
+          <div class="price-changes" id="priceChanges"></div>
         </div>
       </div>
 
@@ -114,25 +123,29 @@
             </thead>
             <tbody>
               <tr><td>Camera</td><td><input type="number" class="modal-input" id="priceCamera" value="130" min="0" step="1"></td><td class="desc">per camera</td></tr>
-              <tr><td>Enclosure</td><td><input type="number" class="modal-input" id="priceEnclosure" value="25" min="0" step="1"></td><td class="desc">per enclosure</td></tr>
+              <tr><td>Enclosure</td><td><input type="number" class="modal-input" id="priceEnclosure" value="30" min="0" step="1"></td><td class="desc">per enclosure</td></tr>
+              <tr><td>Enclosure lock</td><td><input type="number" class="modal-input" id="priceEnclosureLock" value="30" min="0" step="1"></td><td class="desc">per lock</td></tr>
               <tr><td>Configuration</td><td><input type="number" class="modal-input" id="priceConfig" value="25" min="0" step="1"></td><td class="desc">per camera</td></tr>
               <tr><td>Logistics</td><td><input type="number" class="modal-input" id="priceLogistics" value="10" min="0" step="1"></td><td class="desc">per camera</td></tr>
-              <tr><td>SD-card (two sets)</td><td><input type="number" class="modal-input" id="priceSD" value="20" min="0" step="1"></td><td class="desc">per camera</td></tr>
-              <tr><td>Batteries (two sets)</td><td><input type="number" class="modal-input" id="priceBatteries" value="100" min="0" step="1"></td><td class="desc">per camera</td></tr>
+              <tr><td>SD-card (two units)</td><td><input type="number" class="modal-input" id="priceSD" value="40" min="0" step="1"></td><td class="desc">per camera</td></tr>
+              <tr><td>Batteries (two units)</td><td><input type="number" class="modal-input" id="priceBatteries" value="100" min="0" step="1"></td><td class="desc">per camera</td></tr>
               <tr><td>Mobile data (SIM)*</td><td><input type="number" class="modal-input" id="priceSIM" value="5" min="0" step="0.5"></td><td class="desc">per camera / month</td></tr>
               <tr><td>Camera management**</td><td><input type="number" class="modal-input" id="camMgmtCost" value="300" min="0" step="10"></td><td class="desc">per camera / year</td></tr>
               <tr><td>Battery charger</td><td><input type="number" class="modal-input" id="priceCharger" value="50" min="0" step="1"></td><td class="desc">per project</td></tr>
               <tr><td>Software setup</td><td><input type="number" class="modal-input" id="priceSWSetup" value="1000" min="0" step="50"></td><td class="desc">per project</td></tr>
+              <tr><td>Project management</td><td><input type="number" class="modal-input" id="priceProjMgmt" value="1000" min="0" step="50"></td><td class="desc">per project</td></tr>
               <tr><td>Software maintenance</td><td><input type="number" class="modal-input" id="priceSWMaint" value="250" min="0" step="10"></td><td class="desc">per project / month</td></tr>
               <tr><td>Software development</td><td><input type="number" class="modal-input" id="priceSWDev" value="1000" min="0" step="50"></td><td class="desc">per day</td></tr>
               <tr><td>Server setup</td><td><input type="number" class="modal-input" id="priceSrvSetup" value="1000" min="0" step="50"></td><td class="desc">per project</td></tr>
               <tr><td>Server maintenance</td><td><input type="number" class="modal-input" id="priceSrvMaint" value="250" min="0" step="10"></td><td class="desc">per project / month</td></tr>
               <tr><td>Server instance</td><td><input type="number" class="modal-input" id="priceSrvInstance" value="100" min="0" step="10"></td><td class="desc">per project / month</td></tr>
+              <tr><td>Image storage</td><td><input type="number" class="modal-input" id="priceImgStorage" value="10" min="0" step="1"></td><td class="desc">per project / month</td></tr>
+              <tr><td>Server backup</td><td><input type="number" class="modal-input" id="priceSrvBackup" value="10" min="0" step="1"></td><td class="desc">per project / month</td></tr>
               <tr><td>Training session</td><td><input type="number" class="modal-input" id="priceTraining" value="1000" min="0" step="50"></td><td class="desc">per session</td></tr>
               <tr><td>Local support session</td><td><input type="number" class="modal-input" id="priceLocalSupport" value="1000" min="0" step="50"></td><td class="desc">per session</td></tr>
             </tbody>
           </table>
-          <p style="font-size:.7rem; color:#9ca3af; padding:.5rem .5rem 0; font-style:italic;">* Based on Dutch SIM cards, costs may vary by country.</p>
+          <p style="font-size:.7rem; color:#9ca3af; padding:.5rem .5rem 0; font-style:italic;">* Costs may vary by region.</p>
           <p style="font-size:.7rem; color:#9ca3af; padding:.25rem .5rem .25rem; font-style:italic;">** Wildlife Insight charges around 300 per camera per year. Only applies when enabled in project parameters.</p>
         </div>
       </div>

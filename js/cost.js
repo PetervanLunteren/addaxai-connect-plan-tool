@@ -1,4 +1,4 @@
-/* Cost calculator — extracted from original IIFE */
+/* Cost calculator */
 
 var COLORS = [
   '#0b5f65','#0e7a82','#12949d','#2db3bc','#6dcdd4',
@@ -10,39 +10,115 @@ var COLORS = [
 function prices() {
   return {
     camera: val('priceCamera'), enclosure: val('priceEnclosure'),
+    enclosureLock: val('priceEnclosureLock'),
     config: val('priceConfig'), logistics: val('priceLogistics'),
     sd: val('priceSD'), batteries: val('priceBatteries'),
     sim: val('priceSIM'), charger: val('priceCharger'),
     swSetup: val('priceSWSetup'), swMaint: val('priceSWMaint'),
     swDev: val('priceSWDev'), srvSetup: val('priceSrvSetup'),
     srvMaint: val('priceSrvMaint'), srvInstance: val('priceSrvInstance'),
+    imgStorage: val('priceImgStorage'), srvBackup: val('priceSrvBackup'),
+    projMgmt: val('priceProjMgmt'),
     training: val('priceTraining'),
     localSupport: val('priceLocalSupport')
   };
 }
 
-function computeTotal(P, cams, yrs, byo, byoSim, backup, encl, sessions, localSessions, devDays, inclMgmt, mgmtCost, diy) {
-  var months = yrs * 12;
-  var ca = byo ? 0 : cams;
-  var cb = byo ? 0 : backup;
-  var ce = byo ? 0 : encl;
-  var items = [
-    P.camera * ca, P.camera * cb, P.enclosure * ce,
-    P.charger * (byo ? 0 : 1), P.sd * ca, P.batteries * ca,
-    P.logistics * (ca + cb),
-    diy ? 0 : P.config * cams,
-    diy ? 0 : P.srvSetup,
-    diy ? 0 : P.swSetup,
-    diy ? 0 : P.swDev * devDays,
-    diy ? 0 : P.training * sessions,
-    diy ? 0 : P.localSupport * localSessions,
-    byoSim ? 0 : (P.sim * months * cams),
-    (inclMgmt ? mgmtCost : 0) * yrs * cams,
-    diy ? 0 : P.srvInstance * months,
-    diy ? 0 : P.srvMaint * months,
-    diy ? 0 : P.swMaint * months
+function inputs() {
+  return {
+    years: val('years'),
+    active: val('activeCameras'), backup: val('backupCameras'),
+    encl: val('enclosures'), locks: val('enclosureLocks'),
+    projMgmt: val('projMgmt'), sessions: val('trainingSessions'),
+    localSupport: val('localSupportSessions'), devDays: val('devDays'),
+    byo: $('byo').checked, byoSim: $('byoSim').checked, diy: $('diy').checked,
+    inclMgmt: !$('camMgmt').checked, mgmtCost: val('camMgmtCost')
+  };
+}
+
+/* Single source of truth for all cost lines: table, charts and scaling insight all use this */
+function buildRows(P, I) {
+  var months = I.years * 12;
+  var perYr = ' / ' + I.years + 'yr';
+  var hw  = function (n) { return I.byo ? 0 : n; };   // hardware, skipped with own cameras
+  var svc = function (n) { return I.diy ? 0 : n; };   // service, skipped when doing it yourself
+  var rows = [
+    { name: 'Active cameras',                unit: P.camera,                 basis: 'Per item',             qty: hw(I.active),                 cat: 'Hardware' },
+    { name: 'Backup cameras',                unit: P.camera,                 basis: 'Per item',             qty: hw(I.backup),                 cat: 'Hardware' },
+    { name: 'Enclosures',                    unit: P.enclosure,              basis: 'Per item',             qty: hw(I.encl),                   cat: 'Hardware' },
+    { name: 'Enclosure locks',               unit: P.enclosureLock,          basis: 'Per item',             qty: hw(I.locks),                  cat: 'Hardware' },
+    { name: 'Battery charger',               unit: P.charger,                basis: 'Per project',          qty: hw(1),                        cat: 'Hardware' },
+    { name: 'SD-cards (two units)',          unit: P.sd,                     basis: 'Per active camera',    qty: hw(I.active),                 cat: 'Hardware' },
+    { name: 'Batteries (two units)',         unit: P.batteries,              basis: 'Per active camera',    qty: hw(I.active),                 cat: 'Hardware' },
+    { name: 'Logistics',                     unit: P.logistics,              basis: 'Per item',             qty: hw(I.active + I.backup),      cat: 'Hardware' },
+    { name: 'Camera configuration',          unit: P.config,                 basis: 'Per active camera',    qty: svc(hw(I.active)),            cat: 'Setup' },
+    { name: 'Server setup',                  unit: P.srvSetup,               basis: 'Per project',          qty: svc(1),                       cat: 'Setup' },
+    { name: 'Software setup',                unit: P.swSetup,                basis: 'Per project',          qty: svc(1),                       cat: 'Setup' },
+    { name: 'Project management',            unit: P.projMgmt,               basis: 'Per project',          qty: svc(I.projMgmt),              cat: 'Setup' },
+    { name: 'Software development',          unit: P.swDev,                  basis: 'Per day',              qty: svc(I.devDays),               cat: 'Setup' },
+    { name: 'Training',                      unit: P.training,               basis: 'Per session',          qty: svc(I.sessions),              cat: 'Setup' },
+    { name: 'Local support',                 unit: P.localSupport,           basis: 'Per session',          qty: svc(I.localSupport),          cat: 'Setup' },
+    { name: 'Mobile data (SIM-card)',        unit: P.sim * months,           basis: 'Per camera' + perYr,   qty: I.byoSim ? 0 : I.active,      cat: 'Usage' },
+    { name: 'Camera placement & management', unit: (I.inclMgmt ? I.mgmtCost : 0) * I.years, basis: 'Per camera' + perYr, qty: I.active,  cat: 'Usage' },
+    { name: 'Server instance',               unit: P.srvInstance * months,   basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
+    { name: 'Server maintenance',            unit: P.srvMaint * months,      basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
+    { name: 'Software maintenance',          unit: P.swMaint * months,       basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
+    { name: 'Image storage',                 unit: P.imgStorage * months,    basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' },
+    { name: 'Server backup',                 unit: P.srvBackup * months,     basis: 'Per project' + perYr,  qty: svc(1),                       cat: 'Usage' }
   ];
-  return items.reduce(function (s, v) { return s + v; }, 0);
+  rows.forEach(function (r) { r.total = r.unit * r.qty; });
+  return rows;
+}
+
+function sumRows(rows) {
+  return rows.reduce(function (s, r) { return s + r.total; }, 0);
+}
+
+/* Unit prices that differ from the HTML default, so a loaded project is easy to inspect */
+function priceChanges() {
+  return PRICE_IDS.map(function (id) {
+    var input = $(id);
+    return {
+      id: id,
+      name: input.closest('tr').children[0].textContent.replace(/\*+$/, ''),
+      def: parseFloat(input.defaultValue) || 0,
+      cur: val(id)
+    };
+  }).filter(function (c) { return c.cur !== c.def; });
+}
+
+function renderPriceChanges() {
+  var changes = priceChanges();
+  var changedIds = changes.map(function (c) { return c.id; });
+
+  // Highlight changed rows in the modal and show the default
+  PRICE_IDS.forEach(function (id) {
+    var input = $(id);
+    var tr = input.closest('tr');
+    var changed = changedIds.indexOf(id) !== -1;
+    tr.classList.toggle('changed', changed);
+    var note = tr.querySelector('.default-note');
+    if (changed && !note) {
+      note = document.createElement('span');
+      note.className = 'default-note';
+      tr.children[2].appendChild(note);
+    }
+    if (note) {
+      if (changed) note.textContent = 'default \u20AC ' + eur(parseFloat(input.defaultValue) || 0);
+      else note.remove();
+    }
+  });
+
+  // Note under the parameters card
+  var box = $('priceChanges');
+  if (changes.length === 0) {
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = '<strong>Unit prices adjusted from the default</strong><ul>' +
+    changes.map(function (c) {
+      return '<li>' + c.name + ' <span>\u20AC ' + eur(c.def) + ' to \u20AC ' + eur(c.cur) + '</span></li>';
+    }).join('') + '</ul>';
 }
 
 function renderDonut(svgEl, legendEl, data, total) {
@@ -79,58 +155,24 @@ function renderDonut(svgEl, legendEl, data, total) {
 }
 
 function calculate() {
-  var P         = prices();
-  var byo       = $('byo').checked;
-  var inclMgmt  = !$('camMgmt').checked;
-  var years     = val('years');
-  var active    = val('activeCameras');
-  var backup    = val('backupCameras');
-  var enclCount = val('enclosures');
-  var sessions  = val('trainingSessions');
-  var devDays   = val('devDays');
-  var localSupport = val('localSupportSessions');
-  var mgmtCost  = val('camMgmtCost');
-  var byoSim    = $('byoSim').checked;
-  var diy       = $('diy').checked;
-  var months    = years * 12;
+  var P = prices();
+  var I = inputs();
+  var active = I.active, years = I.years;
 
   // Disable camera inputs when BYO is checked
   document.querySelectorAll('.camera-row').forEach(function (row) {
-    row.classList.toggle('disabled', byo);
+    row.classList.toggle('disabled', I.byo);
   });
 
   // Disable service inputs when DIY is checked
   document.querySelectorAll('.service-row').forEach(function (row) {
-    row.classList.toggle('disabled', diy);
+    row.classList.toggle('disabled', I.diy);
   });
 
-  var camQtyActive = byo ? 0 : active;
-  var camQtyBackup = byo ? 0 : backup;
-  var camQtyEncl   = byo ? 0 : enclCount;
+  renderPriceChanges();
 
-  var rows = [
-    { name: 'Active cameras',                unit: P.camera,              basis: 'Per item',          qty: camQtyActive,                cat: 'Hardware' },
-    { name: 'Backup cameras',                unit: P.camera,              basis: 'Per item',          qty: camQtyBackup,                cat: 'Hardware' },
-    { name: 'Enclosures',                    unit: P.enclosure,           basis: 'Per item',          qty: camQtyEncl,                  cat: 'Hardware' },
-    { name: 'Battery charger',               unit: P.charger,             basis: 'Per project',       qty: byo ? 0 : 1,                cat: 'Hardware' },
-    { name: 'SD-cards (two sets)',            unit: P.sd,                  basis: 'Per active camera', qty: camQtyActive,                cat: 'Hardware' },
-    { name: 'Batteries (two sets)',           unit: P.batteries,           basis: 'Per active camera', qty: camQtyActive,                cat: 'Hardware' },
-    { name: 'Logistics',                     unit: P.logistics,           basis: 'Per item',          qty: camQtyActive + camQtyBackup, cat: 'Hardware' },
-    { name: 'Camera configuration',          unit: P.config,              basis: 'Per active camera', qty: diy ? 0 : active,            cat: 'Setup' },
-    { name: 'Server setup',                  unit: P.srvSetup,            basis: 'Per project',       qty: diy ? 0 : 1,                 cat: 'Setup' },
-    { name: 'Software setup',                unit: P.swSetup,             basis: 'Per project',       qty: diy ? 0 : 1,                 cat: 'Setup' },
-    { name: 'Software development',          unit: P.swDev,               basis: 'Per day',           qty: diy ? 0 : devDays,           cat: 'Setup' },
-    { name: 'Training',                      unit: P.training,            basis: 'Per session',       qty: diy ? 0 : sessions,          cat: 'Setup' },
-    { name: 'Local support',                 unit: P.localSupport,        basis: 'Per session',       qty: diy ? 0 : localSupport,      cat: 'Setup' },
-    { name: 'Mobile data (SIM-card)',         unit: P.sim * months,        basis: 'Per camera / ' + years + 'yr', qty: byoSim ? 0 : active, cat: 'Usage' },
-    { name: 'Camera placement & management', unit: (inclMgmt ? mgmtCost : 0) * years, basis: 'Per camera / ' + years + 'yr', qty: active, cat: 'Usage' },
-    { name: 'Server instance',               unit: P.srvInstance * months, basis: 'Per project / ' + years + 'yr', qty: diy ? 0 : 1,      cat: 'Usage' },
-    { name: 'Server maintenance',            unit: P.srvMaint * months,   basis: 'Per project / ' + years + 'yr', qty: diy ? 0 : 1,    cat: 'Usage' },
-    { name: 'Software maintenance',          unit: P.swMaint * months,    basis: 'Per project / ' + years + 'yr', qty: diy ? 0 : 1,    cat: 'Usage' },
-  ];
-
-  rows.forEach(function (r) { r.total = r.unit * r.qty; });
-  var grandTotal = rows.reduce(function (s, r) { return s + r.total; }, 0);
+  var rows = buildRows(P, I);
+  var grandTotal = sumRows(rows);
 
   // Render output table with section headers
   var tbody = $('outputBody');
@@ -191,7 +233,11 @@ function calculate() {
   // Scaling insight table
   var camSteps = [10, 25, 50, 75, 100, 150, 200];
   var yearSteps = [1, 2];
-  var backupRatio = active > 0 ? backup / active : 0.1;
+  var backupRatio = active > 0 ? I.backup / active : 0.1;
+  var scaledTotal = function (c, y) {
+    var alt = Object.assign({}, I, { active: c, backup: Math.round(c * backupRatio), years: y, devDays: 0 });
+    return sumRows(buildRows(P, alt));
+  };
 
   var scalingBody = $('scalingBody');
   var sHTML = '<tr><th class="row-header">Cameras \u2192<br>Years \u2193</th>';
@@ -203,9 +249,7 @@ function calculate() {
   yearSteps.forEach(function (y) {
     sHTML += '<tr><td class="row-header">' + y + ' yr' + (y > 1 ? 's' : '') + '</td>';
     camSteps.forEach(function (c) {
-      var bk = Math.round(c * backupRatio);
-      var t = computeTotal(P, c, y, byo, byoSim, bk, enclCount, sessions, localSupport, 0, inclMgmt, mgmtCost, diy);
-      var avg = t / c / y;
+      var avg = scaledTotal(c, y) / c / y;
       var isCurrent = c === active && y === years;
       sHTML += '<td class="' + (isCurrent ? 'current-cell' : '') + '">\u20AC ' + Math.round(avg) + '</td>';
     });
@@ -222,9 +266,7 @@ function calculate() {
     return {
       year: y,
       points: camSteps.map(function (c) {
-        var bk = Math.round(c * backupRatio);
-        var t = computeTotal(P, c, y, byo, byoSim, bk, enclCount, sessions, localSupport, 0, inclMgmt, mgmtCost, diy);
-        return { cam: c, avg: Math.round(t / c / y) };
+        return { cam: c, avg: Math.round(scaledTotal(c, y) / c / y) };
       })
     };
   });
